@@ -1,0 +1,64 @@
+class ServiceNowClient implements Serializable {
+    private def steps
+    private String baseUrl = "https://dev342177.service-now.com"
+    private String credsId = "snow-credentials"
+
+    ServiceNowClient(steps) {
+        this.steps = steps
+    }
+
+    /**
+     * Método privado para obtener el sys_id dinámicamente según los parámetros.
+     */
+    private String obtenerSysId(String numeroCambio, String numeroTarea) {
+        // Codificamos la query para evitar el error de caracteres ilegales.
+        String query = URLEncoder.encode("number=${numeroTarea}^change_request.number=${numeroCambio}", "UTF-8")
+        
+        def response = steps.httpRequest(
+            url: "${baseUrl}/api/now/table/change_task?sysparm_query=${query}&sysparm_fields=sys_id",
+            authentication: credsId,
+            httpMode: 'GET',
+            contentType: 'APPLICATION_JSON'
+        )
+        def json = steps.readJSON text: response.content
+        return (json.result && json.result.size() > 0) ? json.result[0].sys_id : null
+    }
+
+    /**
+     * Añade una Work Note (nota técnica interna).
+     */
+    void documentarNotaDeTarea(String numeroCambio, String numeroTarea, String mensajeNota) {
+        String sid = obtenerSysId(numeroCambio, numeroTarea)
+        if (!sid) steps.error("Error: No se encontró la tarea ${numeroTarea} en el cambio ${numeroCambio}")
+
+        steps.httpRequest(
+            url: "${baseUrl}/api/now/table/change_task/${sid}",
+            authentication: credsId,
+            httpMode: 'PUT',
+            contentType: 'APPLICATION_JSON',
+            requestBody: steps.writeJSON(json: [work_notes: mensajeNota], returnText: true)
+        )
+    }
+
+    /**
+     * Cierra la tarea con la información de cierre requerida por ServiceNow.
+     */
+    void cerrarTarea(String numeroCambio, String numeroTarea, String notasDeCierre) {
+        String sid = obtenerSysId(numeroCambio, numeroTarea)
+        if (!sid) steps.error("Error: No se encontró la tarea para cerrar")
+
+        def payload = [
+            state: "3",                 // Estado 'Closed'
+            close_code: "successful",   // Código 'Cerrado completado'
+            close_notes: notasDeCierre
+        ]
+
+        steps.httpRequest(
+            url: "${baseUrl}/api/now/table/change_task/${sid}",
+            authentication: credsId,
+            httpMode: 'PUT',
+            contentType: 'APPLICATION_JSON',
+            requestBody: steps.writeJSON(json: payload, returnText: true)
+        )
+    }
+}
