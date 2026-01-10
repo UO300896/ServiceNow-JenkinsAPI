@@ -1,3 +1,4 @@
+import ServiceNowClient
 def call() {
     pipeline {
         agent any
