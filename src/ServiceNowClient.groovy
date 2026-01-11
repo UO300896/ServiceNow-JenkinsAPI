@@ -1,4 +1,4 @@
-estclass ServiceNowClient implements Serializable {
+class ServiceNowClient implements Serializable {
     private def steps
     private String baseUrl = "https://dev342177.service-now.com"
     private String credsId = "snow-credentials"
