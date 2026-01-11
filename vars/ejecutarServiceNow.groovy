@@ -18,7 +18,7 @@ def call() {
                         // Instanciamos el cliente profesional
                         def sn = new ServiceNowClient(this)
 
-                        // 1. Siempre documentamos la nota (usando los parámetros del usuario)
+                        // 1. Siempre documentamos la nota de tarea (usando los parámetros del usuario)
                         echo "Añadiendo nota a la tarea ${params.STR_TAREA}..."
                         sn.documentarNotaDeTarea(params.STR_CAMBIO, params.STR_TAREA, params.STR_MENSAJE)
 
@@ -27,6 +27,11 @@ def call() {
                             echo "Cerrando la tarea ${params.STR_TAREA}..."
                             sn.cerrarTarea(params.STR_CAMBIO, params.STR_TAREA, "${params.STR_MENSAJE}")
                         }
+                        
+                        // 3. Siempre documentamos la nota del cambio (usando los parámetros del usuario)
+                        echo "Añadiendo nota al cambio ${params.STR_CAMBIO}..."
+                        sn.documentarNotaDeCambio(params.STR_CAMBIO, params.STR_MENSAJE)
+                        
                     }
                 }
             }
