@@ -1,4 +1,4 @@
-class ServiceNowClient implements Serializable {
+estclass ServiceNowClient implements Serializable {
     private def steps
     private String baseUrl = "https://dev342177.service-now.com"
     private String credsId = "snow-credentials"
@@ -32,7 +32,7 @@ class ServiceNowClient implements Serializable {
         String query = URLEncoder.encode("number=${numeroCambio}", "UTF-8")
         
         def response = steps.httpRequest(
-            url: "${baseUrl}/api/now/table/change_task?sysparm_query=${query}&sysparm_fields=sys_id",
+            url: "${baseUrl}/api/now/table/change_request?sysparm_query=${query}&sysparm_fields=sys_id",
             authentication: credsId,
             httpMode: 'GET',
             contentType: 'APPLICATION_JSON'
