@@ -8,7 +8,7 @@ class ServiceNowClient implements Serializable {
     }
 
     /**
-     * Método privado para obtener el sys_id dinámicamente según los parámetros.
+     * Método privado para obtener el sys_id de la tarea dinámicamente según los parámetros.
      */
     private String obtenerSysId(String numeroCambio, String numeroTarea) {
         // Codificamos la query para evitar el error de caracteres ilegales.
@@ -25,7 +25,24 @@ class ServiceNowClient implements Serializable {
     }
 
     /**
-     * Añade una Work Note (nota técnica interna).
+     * Método privado para obtener el sys_id del cambio dinámicamente según los parámetros.
+     */
+    private String obtenerSysId(String numeroCambio) {
+        // Codificamos la query para evitar el error de caracteres ilegales.
+        String query = URLEncoder.encode("number=${numeroCambio}", "UTF-8")
+        
+        def response = steps.httpRequest(
+            url: "${baseUrl}/api/now/table/change_task?sysparm_query=${query}&sysparm_fields=sys_id",
+            authentication: credsId,
+            httpMode: 'GET',
+            contentType: 'APPLICATION_JSON'
+        )
+        def json = steps.readJSON text: response.content
+        return (json.result && json.result.size() > 0) ? json.result[0].sys_id : null
+    }
+
+    /**
+     * Añade una Work Note en la tarea.
      */
     void documentarNotaDeTarea(String numeroCambio, String numeroTarea, String mensajeNota) {
         String sid = obtenerSysId(numeroCambio, numeroTarea)
@@ -38,8 +55,24 @@ class ServiceNowClient implements Serializable {
             contentType: 'APPLICATION_JSON',
             requestBody: steps.writeJSON(json: [work_notes: mensajeNota], returnText: true)
         )
-    }
+    }    
+    
+    /**
+     * Añade una Work Note en el cambio.
+     */
+    void documentarNotaDeCambio(String numeroCambio, String mensajeNota) {
+        String sid = obtenerSysId(numeroCambio)
+        if (!sid) steps.error("Error: No se encontró el cambio ${numeroCambio}")
 
+        steps.httpRequest(
+            url: "${baseUrl}/api/now/table/change_task/${sid}",
+            authentication: credsId,
+            httpMode: 'PUT',
+            contentType: 'APPLICATION_JSON',
+            requestBody: steps.writeJSON(json: [work_notes: mensajeNota], returnText: true)
+        )
+    }
+    
     /**
      * Cierra la tarea con la información de cierre requerida por ServiceNow.
      */
