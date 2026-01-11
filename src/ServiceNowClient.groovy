@@ -65,7 +65,7 @@ class ServiceNowClient implements Serializable {
         if (!sid) steps.error("Error: No se encontró el cambio ${numeroCambio}")
 
         steps.httpRequest(
-            url: "${baseUrl}/api/now/table/change_task/${sid}",
+            url: "${baseUrl}/api/now/table/change_request/${sid}",
             authentication: credsId,
             httpMode: 'PUT',
             contentType: 'APPLICATION_JSON',
