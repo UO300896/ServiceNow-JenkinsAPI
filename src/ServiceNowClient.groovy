@@ -1,7 +1,7 @@
 class ServiceNowClient implements Serializable {
     private def steps
-    private String baseUrl = "https://dev342177.service-now.com"
-    private String credsId = "snow-credentials"
+    private String baseUrl = "https://dev342177.service-now.com" //Sustituir por tu instancia particular
+    private String credsId = "snow-credentials" //Sustituir por el nombre de que tengan tus credenciales en Jenkins
 
     ServiceNowClient(steps) {
         this.steps = steps
