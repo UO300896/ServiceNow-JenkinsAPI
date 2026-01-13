@@ -1,7 +1,7 @@
-## ServiceNow-JenkinsAPI
+# ServiceNow-JenkinsAPI
 API y Pipeline para documentar en ServiceNow directamente desde Jenkins
 
-# Descripción
+## Descripción
 El archivo src/ServiceNowClient.groovy sirve como módulo para acceder a las propiedades de la API de SNOW, 
 permitiendo documentación de tareas y cambios tanto en notas de trabajo como notas de cierre.
 
@@ -12,6 +12,7 @@ solicitando al usuario parámetros para el número de cambio, número de tarea, 
 -Instancia de SNOW (se puede conseguir desde el portal oficial de Service Now Developers).
 
 -Instancia de Jenkins.
+
 -Credenciales de usuario de SNOW (usuario y contraseña) introducidas en Jenkins:
 
       -Manage Jenkins -> Credentials.
