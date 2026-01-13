@@ -10,8 +10,12 @@ solicitando al usuario parámetros para el número de cambio, número de tarea, 
 
 ## REQUISITOS
 -Instancia de SNOW (se puede conseguir desde el portal oficial de Service Now Developers).
+
 -Instancia de Jenkins.
 -Credenciales de usuario de SNOW (usuario y contraseña) introducidas en Jenkins:
+
       -Manage Jenkins -> Credentials.
+      
 -Plugin HTTP Request habilitado en Jenkins (se puede trabajar sin él. Aunque se sustituirían los métodos httpRequest por curls manuales).
+
 -Plugin Pipeline Utility Steps habilitado en Jenkins (posibilita lectura de JSON).
