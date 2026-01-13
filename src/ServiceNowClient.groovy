@@ -109,11 +109,11 @@ void ponerTareaEnEspera(String numeroCambio, String numeroTarea, String motivo) 
     ]
 
     steps.httpRequest(
-        url: "${baseUrl}/api/now/table/change_task/${sid}",
-        authentication: credsId,
-        httpMode: 'PUT',
-        contentType: 'application/json; charset=UTF-8',
-        requestBody: steps.writeJSON(json: payload, returnText: true)
+            url: "${baseUrl}/api/now/table/change_task/${sid}",
+            authentication: credsId,
+            httpMode: 'PUT',
+            contentType: 'APPLICATION_JSON',
+            requestBody: steps.writeJSON(json: payload, returnText: true)
         )
     }
 }
