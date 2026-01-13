@@ -29,7 +29,7 @@ def call() {
                             echo "Cerrando la tarea ${params.STR_TAREA}..."
                             sn.cerrarTarea(params.STR_CAMBIO, params.STR_TAREA, "${params.STR_MENSAJE}")
                             echo "Poniendo tarea en espera ${params.TAREA_EN_ESPERA}..."
-                            sn.cerrarTarea(params.STR_CAMBIO, params.STR_TAREA_EN_ESPERA, "${params.STR_MENSAJE_EN_ESPERA}")
+                            sn.ponerTareaEnEspera(params.STR_CAMBIO, params.STR_TAREA_EN_ESPERA, "${params.STR_MENSAJE_EN_ESPERA}")
                         }
                         
                         // 3. Siempre documentamos la nota del cambio (usando los parámetros del usuario)
