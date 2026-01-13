@@ -94,4 +94,26 @@ class ServiceNowClient implements Serializable {
             requestBody: steps.writeJSON(json: payload, returnText: true)
         )
     }
+
+    /**
+ * Pone una tarea en espera usando el campo booleano y el motivo específico.
+ */
+void ponerTareaEnEspera(String numeroCambio, String numeroTarea, String motivo) {
+    String sid = obtenerSysId(numeroCambio, numeroTarea)
+    if (!sid) steps.error("No se encontró la tarea ${numeroTarea}")
+
+    
+    def payload = [
+        on_hold: true,
+        on_hold_reason: motivo
+    ]
+
+    steps.httpRequest(
+        url: "${baseUrl}/api/now/table/change_task/${sid}",
+        authentication: credsId,
+        httpMode: 'PUT',
+        contentType: 'application/json; charset=UTF-8',
+        requestBody: steps.writeJSON(json: payload, returnText: true)
+        )
+    }
 }
