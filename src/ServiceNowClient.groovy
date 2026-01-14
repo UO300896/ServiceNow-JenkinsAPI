@@ -188,4 +188,24 @@ void ponerTareaEnEspera(String numeroCambio, String numeroTarea, String motivo) 
             requestBody: steps.writeJSON(json: [assigned_to: sidUsuario], returnText: true)
         )
     }
+
+    /**
+     * Busca una tarea en base a otra.
+     * 
+     */
+    String buscarTarea(String numeroTarea, int cantidadASumar) {
+        // Regex para separar letras de números y revisar formato
+        def matcher = (numeroTarea =~ /([A-Za-z]+)(\d+)/)
+        if (!matcher.find()) steps.error("La tarea ${numeroTarea} no cumple el formato solicitado")
+            
+            String prefijo = matcher[0][1] // normalmente "CTASK"
+            String digitos = matcher[0][2] 
+            int longitud = digitos.length() // Útil para no perder ceros de la izquierda si los hubiera
+            
+            // Se resta el número solicitado
+            def nuevoNumero = digitos.toInteger() + cantidadASumar
+            
+            // Reconstruimos con ceros a la izquierda (si los hubiera)
+            return prefijo + nuevoNumero.toString().padLeft(longitud, '0')
+    }
 }
