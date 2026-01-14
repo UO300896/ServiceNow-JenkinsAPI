@@ -37,8 +37,15 @@ def call() {
 
                             echo "Buscando tarea siguiente..."
                             String tareaEnEspera = sn.buscarTarea(params.STR_TAREA, 1) // Busca la tarea inmediatamente siguiente
+
+                             echo "Asignando tarea ${tareaEnEspera} a ${params.STR_USUARIO}..."
+                            sn.asignarTarea(params.STR_CAMBIO, tareaEnEspera, params.STR_USUARIO)
+                            
                             echo "Poniendo tarea en espera ${tareaEnEspera}..."
                             sn.ponerTareaEnEspera(params.STR_CAMBIO, tareaEnEspera, "${params.STR_MENSAJE_EN_ESPERA}")
+
+                           
+                            
                         }
                         
                         // 3. Siempre documentamos la nota del cambio (usando los parámetros del usuario)
