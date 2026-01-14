@@ -7,7 +7,6 @@ def call() {
         parameters {
             string(name: 'STR_CAMBIO', defaultValue: '', description: 'Número del Cambio')
             string(name: 'STR_TAREA', defaultValue: '', description: 'Número de la Tarea')
-            string(name: 'STR_TAREA_EN_ESPERA', defaultValue: '', description: 'Número de la Tarea a poner en espera')
             text(name: 'STR_MENSAJE', defaultValue: 'Actualización desde Jenkins', description: 'Mensaje de la nota')
             text(name: 'STR_MENSAJE_EN_ESPERA', defaultValue: 'En espera a fecha de ejecución', description: 'Motivo de poner en espera')
             string(name: 'STR_USUARIO', defaultValue: 'David Loo', description: 'Nombre del usuario')
@@ -35,8 +34,11 @@ def call() {
                         if (params.BOOL_CERRAR) {
                             echo "Cerrando la tarea ${params.STR_TAREA}..."
                             sn.cerrarTarea(params.STR_CAMBIO, params.STR_TAREA, "${params.STR_MENSAJE}")
-                            echo "Poniendo tarea en espera ${params.STR_TAREA_EN_ESPERA}..."
-                            sn.ponerTareaEnEspera(params.STR_CAMBIO, params.STR_TAREA_EN_ESPERA, "${params.STR_MENSAJE_EN_ESPERA}")
+
+                            echo "Buscando tarea siguiente..."
+                            String tareaEnEspera = sn.buscarTarea(params.STR_TAREA, 1) // Busca la tarea inmediatamente siguiente
+                            echo "Poniendo tarea en espera ${tareaEnEspera}..."
+                            sn.ponerTareaEnEspera(params.STR_CAMBIO, tareaEnEspera, "${params.STR_MENSAJE_EN_ESPERA}")
                         }
                         
                         // 3. Siempre documentamos la nota del cambio (usando los parámetros del usuario)
