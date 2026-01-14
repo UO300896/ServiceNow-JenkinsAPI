@@ -7,6 +7,7 @@ class ServiceNowClient implements Serializable {
         this.steps = steps
     }
 
+    // Métodos privados/auxiliares
     /**
      * Método privado para obtener el sys_id de la tarea dinámicamente según los parámetros.
      */
@@ -42,12 +43,35 @@ class ServiceNowClient implements Serializable {
     }
 
     /**
+     * Método privado para obtener el sys_id de un usuario por su nombre completo.
+     */
+    private String obtenerIdUsuario(String nombreCompleto) {
+        // Codificamos el nombre porque puede tener espacios o tildes
+        String query = URLEncoder.encode("name=${nombreCompleto}", "UTF-8")
+        
+        // Buscamos en la tabla de usuarios (sys_user)
+        def response = steps.httpRequest(
+            url: "${baseUrl}/api/now/table/sys_user?sysparm_query=${query}&sysparm_fields=sys_id",
+            authentication: credsId,
+            httpMode: 'GET',
+            contentType: 'APPLICATION_JSON'
+        )
+        
+        def json = steps.readJSON text: response.content
+        // Devolvemos el ID si lo encontramos, o null si no existe
+        return (json.result && json.result.size() > 0) ? json.result[0].sys_id : null
+    }
+
+    // Métodos públicos
+    
+    /**
      * Añade una Work Note en la tarea.
      */
     void documentarNotaDeTarea(String numeroCambio, String numeroTarea, String mensajeNota) {
+        // 1. Buscamos el ID de la tarea
         String sid = obtenerSysId(numeroCambio, numeroTarea)
         if (!sid) steps.error("Error: No se encontró la tarea ${numeroTarea} en el cambio ${numeroCambio}")
-
+        // 2. Llamada a API con los cambios a realizar
         steps.httpRequest(
             url: "${baseUrl}/api/now/table/change_task/${sid}",
             authentication: credsId,
@@ -61,9 +85,11 @@ class ServiceNowClient implements Serializable {
      * Añade una Work Note en el cambio.
      */
     void documentarNotaDeCambio(String numeroCambio, String mensajeNota) {
+        // 1. Buscamos el ID de la tarea
         String sid = obtenerSysId(numeroCambio)
         if (!sid) steps.error("Error: No se encontró el cambio ${numeroCambio}")
 
+        // 2. Llamada a API con los cambios a realizar
         steps.httpRequest(
             url: "${baseUrl}/api/now/table/change_request/${sid}",
             authentication: credsId,
@@ -77,15 +103,18 @@ class ServiceNowClient implements Serializable {
      * Cierra la tarea con la información de cierre requerida por ServiceNow.
      */
     void cerrarTarea(String numeroCambio, String numeroTarea, String notasDeCierre) {
+        // 1. Buscamos el ID de la tarea
         String sid = obtenerSysId(numeroCambio, numeroTarea)
         if (!sid) steps.error("Error: No se encontró la tarea para cerrar")
 
+        // 2. Declaramos cambios a realizar
         def payload = [
             state: "3",                 // Estado 'Closed'
             close_code: "successful",   // Código 'Cerrado completado'
             close_notes: notasDeCierre
         ]
 
+        // 3. Llamada a API con los cambios a realizar anteriormente declarados
         steps.httpRequest(
             url: "${baseUrl}/api/now/table/change_task/${sid}",
             authentication: credsId,
@@ -99,21 +128,64 @@ class ServiceNowClient implements Serializable {
  * Pone una tarea en espera usando el campo booleano y el motivo específico.
  */
 void ponerTareaEnEspera(String numeroCambio, String numeroTarea, String motivo) {
+    // 1. Buscamos el ID de la tarea
     String sid = obtenerSysId(numeroCambio, numeroTarea)
     if (!sid) steps.error("No se encontró la tarea ${numeroTarea}")
 
-    
+    // 2. Declaramos cambios a realizar
     def payload = [
         on_hold: true,
         on_hold_reason: motivo
     ]
 
+    // 3. Llamada a API con los cambios a realizar anteriormente declarados
     steps.httpRequest(
             url: "${baseUrl}/api/now/table/change_task/${sid}",
             authentication: credsId,
             httpMode: 'PUT',
             contentType: 'APPLICATION_JSON',
             requestBody: steps.writeJSON(json: payload, returnText: true)
+        )
+    }
+
+    /**
+     * Pone la tarea en ejecución.
+     */
+    void ponerTareaEnEjecucion(String numeroCambio, String numeroTarea) {
+        // 1. Buscamos el ID de la tarea
+        String sid = obtenerSysId(numeroCambio, numeroTarea)
+        if (!sid) steps.error("Error: No se encontró la tarea para cerrar")
+
+        // 2. Llamada a API con los cambios a realizar
+        steps.httpRequest(
+            url: "${baseUrl}/api/now/table/change_task/${sid}",
+            authentication: credsId,
+            httpMode: 'PUT',
+            contentType: 'APPLICATION_JSON',
+            requestBody: steps.writeJSON(json: [state: 2], returnText: true) //Estado 2 = En Ejecución
+        )
+    }
+
+
+    /**
+     * Asigna la tarea a una persona específica.
+     */
+    void asignarTarea(String numeroCambio, String numeroTarea, String nombrePersona) {
+        // 1. Buscamos el ID de la tarea
+        String sidTarea = obtenerSysId(numeroCambio, numeroTarea)
+        if (!sidTarea) steps.error("No se encontró la tarea ${numeroTarea}")
+
+        // 2. Buscamos el ID de la persona
+        String sidUsuario = obtenerIdUsuario(nombrePersona)
+        if (!sidUsuario) steps.error("Error: No se encontró al usuario '${nombrePersona}' en ServiceNow. Revisa el nombre exacto.")
+
+        // 3. Llamada a API con los cambios a realizar
+        steps.httpRequest(
+            url: "${baseUrl}/api/now/table/change_task/${sidTarea}",
+            authentication: credsId,
+            httpMode: 'PUT',
+            contentType: 'APPLICATION_JSON',
+            requestBody: steps.writeJSON(json: [assigned_to: sidUsuario], returnText: true)
         )
     }
 }
