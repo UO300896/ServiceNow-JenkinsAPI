@@ -3,6 +3,11 @@ def call() {
     System.setProperty("file.encoding", "UTF-8")
     pipeline {
         agent any
+
+        environment {
+            SNOW_URL = 'https://dev342177.service-now.com' //Sustituir por tu instancia particular
+            SNOW_CREDENTIALS  = 'snow-credentials' //Sustituir por el nombre de que tengan tus credenciales en Jenkins
+        }
         
         parameters {
             string(name: 'STR_CAMBIO', defaultValue: '', description: 'Número del Cambio')
@@ -18,7 +23,7 @@ def call() {
                 steps {
                     script {
                         // Instanciamos el cliente profesional
-                        def sn = new ServiceNowClient(this)
+                        def sn = new ServiceNowClient(this, env.SNOW_URL, env.SNOW_CREDENTIALS)
 
                         // 1. Siempre ponemos la tarea en ejecución, la asignamos al usuario y documentamos la nota de tarea (usando los parámetros del usuario)
                         echo "Asignando tarea ${params.STR_TAREA} a ${params.STR_USUARIO}..."
@@ -42,9 +47,7 @@ def call() {
                             sn.asignarTarea(params.STR_CAMBIO, tareaEnEspera, params.STR_USUARIO)
                             
                             echo "Poniendo tarea en espera ${tareaEnEspera}..."
-                            sn.ponerTareaEnEspera(params.STR_CAMBIO, tareaEnEspera, "${params.STR_MENSAJE_EN_ESPERA}")
-
-                           
+                            sn.ponerTareaEnEspera(params.STR_CAMBIO, tareaEnEspera, "${params.STR_MENSAJE_EN_ESPERA}")  
                             
                         }
                         
