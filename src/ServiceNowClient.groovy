@@ -192,8 +192,8 @@ void ponerTareaEnEspera(String numeroCambio, String numeroTarea, String motivo) 
     }
 
     /**
-     * Busca una tarea en base a otra.
-     * 
+     * Busca una tarea en base a otra. 
+     * Útil para buscar tareas hermanas.
      */
     String buscarTarea(String numeroTarea, int cantidadASumar) {
         // Regex para separar letras de números y revisar formato
@@ -204,7 +204,7 @@ void ponerTareaEnEspera(String numeroCambio, String numeroTarea, String motivo) 
             String digitos = matcher[0][2] 
             int longitud = digitos.length() // Útil para no perder ceros de la izquierda si los hubiera
             
-            // Se resta el número solicitado
+            // Se suma el número solicitado
             def nuevoNumero = digitos.toInteger() + cantidadASumar
             
             // Reconstruimos con ceros a la izquierda (si los hubiera)
