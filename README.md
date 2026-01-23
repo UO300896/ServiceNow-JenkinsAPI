@@ -1,8 +1,11 @@
 # ServiceNow-JenkinsAPI
-API y Pipeline para documentar en ServiceNow directamente desde Jenkins
+API y Pipeline Ejemplo para documentar en ServiceNow directamente desde Jenkins
 
 ## Descripción
-El archivo src/ServiceNowClient.groovy sirve como módulo para acceder a las propiedades de la API de SNOW, 
+El archivo vars/FuncionesSNOW.groovy está implementado como Global Variable de Jenkins, con programación funcional y permitiendo el uso de proxys en entorno administrativos
+tradicionales. Tiene las mismas funcionalidades que src/ServiceNowClient.groovy
+
+El archivo src/ServiceNowClient.groovy sirve como módulo orientado a objetos para acceder a las propiedades de la API de SNOW, 
 permitiendo documentación de tareas y cambios tanto en notas de trabajo como notas de cierre.
 
 El archivo vars/ejecutarServiceNow sirve como ejemplo de Pipeline implementando las funcionalidades con un ejemplo,
