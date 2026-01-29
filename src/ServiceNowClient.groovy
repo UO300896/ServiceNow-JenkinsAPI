@@ -150,6 +150,30 @@ void ponerTareaEnEspera(String numeroCambio, String numeroTarea, String motivo) 
         )
     }
 
+        /**
+ * Quita una tarea en espera usando el campo booleano y el motivo específico.
+ */
+void quitarTareaEnEspera(String numeroCambio, String numeroTarea) {
+    // 1. Buscamos el ID de la tarea
+    String sid = obtenerSysId(numeroCambio, numeroTarea)
+    if (!sid) steps.error("No se encontró la tarea ${numeroTarea}")
+
+    // 2. Declaramos cambios a realizar
+    def payload = [
+        on_hold: false,
+        on_hold_reason: ""
+    ]
+
+    // 3. Llamada a API con los cambios a realizar anteriormente declarados
+    steps.httpRequest(
+            url: "${baseUrl}/api/now/table/change_task/${sid}",
+            authentication: credsId,
+            httpMode: 'PUT',
+            contentType: 'APPLICATION_JSON',
+            requestBody: steps.writeJSON(json: payload, returnText: true)
+        )
+    }
+
     /**
      * Pone la tarea en ejecución.
      */
