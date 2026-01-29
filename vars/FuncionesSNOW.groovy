@@ -4,7 +4,7 @@ import java.net.URLEncoder
  *
  * Accede a API Service Now para documentar, asignar tareas, etc.
  * @author Alejandro de San Claudio Mesa
- * @version 1.0.0
+ * @version 1.0.1
  *
  *
  *
@@ -31,8 +31,14 @@ def init(url, creds, proxy) {
 
 // MÉTODOS PRIVADOS / AUXILIARES
 
-
-def obtenerSysId(String numeroCambio, String numeroTarea) {
+/**
+ * Obtiene id interno de una tarea
+ *
+ * @param numeroCambio: numero de cambio padre de la tarea a obtener para evitar duplicados
+ * @param numeroTarea
+ * @return sys_id | null
+ */
+def obtenerSysIdDeTarea(String numeroCambio, String numeroTarea) {
     String query = URLEncoder.encode("number=${numeroTarea}^change_request.number=${numeroCambio}", "UTF-8")
     
     def response = httpRequest(
@@ -48,6 +54,12 @@ def obtenerSysId(String numeroCambio, String numeroTarea) {
     return (json.result && json.result.size() > 0) ? json.result[0].sys_id : null
 }
 
+/**
+ * Obtiene id interno de un cambio
+ *
+ * @param numeroCambio
+ * @return sys_id | null
+ */
 def obtenerSysIdDeCambio(String numeroCambio) {
     String query = URLEncoder.encode("number=${numeroCambio}", "UTF-8")
     
@@ -63,6 +75,12 @@ def obtenerSysIdDeCambio(String numeroCambio) {
     return (json.result && json.result.size() > 0) ? json.result[0].sys_id : null
 }
 
+/**
+ * Obtiene id interno de un usuario
+ *
+ * @param nombreCompleto
+ * @return sys_id | null
+ */
 def obtenerIdUsuario(String nombreCompleto) {
     String query = URLEncoder.encode("name=${nombreCompleto}", "UTF-8")
     
@@ -82,9 +100,15 @@ def obtenerIdUsuario(String nombreCompleto) {
 
 // MÉTODOS PÚBLICOS
 
-
+/**
+ * Documenta en las notas de una tarea
+ *
+ * @param numeroCambio: numero de cambio padre de la tarea a obtener para evitar duplicados
+ * @param numeroTarea
+ * @param mensajeNota: mensaje a añadir en las notas de la tarea
+ */
 void documentarNotaDeTarea(String numeroCambio, String numeroTarea, String mensajeNota) {
-    String sid = obtenerSysId(numeroCambio, numeroTarea)
+    String sid = obtenerSysIdDeTarea(numeroCambio, numeroTarea)
     if (!sid) error("Error: No se encontró la tarea ${numeroTarea} en el cambio ${numeroCambio}")
     
     httpRequest(
@@ -98,6 +122,12 @@ void documentarNotaDeTarea(String numeroCambio, String numeroTarea, String mensa
     )
 }    
 
+/**
+ * Documenta en las notas de un cambio
+ *
+ * @param numeroCambio
+ * @param mensajeNota: mensaje a añadir en las notas del cambio
+ */
 void documentarNotaDeCambio(String numeroCambio, String mensajeNota) {
     
     String sid = obtenerSysIdDeCambio(numeroCambio)
@@ -114,8 +144,15 @@ void documentarNotaDeCambio(String numeroCambio, String mensajeNota) {
     )
 }
 
+/**
+ * Cierra una tarea y documenta su motivo de cierre
+ *
+ * @param numeroCambio: numero de cambio padre de la tarea a obtener para evitar duplicados
+ * @param numeroTarea
+ * @param notasDeCierre: mensaje a añadir en las nota de cierre
+ */
 void cerrarTarea(String numeroCambio, String numeroTarea, String notasDeCierre) {
-    String sid = obtenerSysId(numeroCambio, numeroTarea)
+    String sid = obtenerSysIdDeTarea(numeroCambio, numeroTarea)
     if (!sid) error("Error: No se encontró la tarea para cerrar")
 
     def payload = [
@@ -135,8 +172,15 @@ void cerrarTarea(String numeroCambio, String numeroTarea, String notasDeCierre) 
     )
 }
 
+/**
+ * Pone tarea en espera con un motivo determinado
+ *
+ * @param numeroCambio: numero de cambio padre de la tarea a obtener para evitar duplicados
+ * @param numeroTarea
+ * @param motivo: motivo por el cual se pone en espera la tarea
+ */
 void ponerTareaEnEspera(String numeroCambio, String numeroTarea, String motivo) {
-    String sid = obtenerSysId(numeroCambio, numeroTarea)
+    String sid = obtenerSysIdDeTarea(numeroCambio, numeroTarea)
     if (!sid) error("No se encontró la tarea ${numeroTarea}")
 
     def payload = [
@@ -155,8 +199,40 @@ void ponerTareaEnEspera(String numeroCambio, String numeroTarea, String motivo) 
     )
 }
 
+/**
+ * Quita el estado de en espera de una tarea
+ *
+ * @param numeroCambio: numero de cambio padre de la tarea a obtener para evitar duplicados
+ * @param numeroTarea
+ */
+void quitarTareaEnEspera(String numeroCambio, String numeroTarea) {
+    String sid = obtenerSysIdDeTarea(numeroCambio, numeroTarea)
+    if (!sid) error("No se encontró la tarea ${numeroTarea}")
+
+    def payload = [
+        on_hold: false,
+        on_hold_reason: ""
+    ]
+
+    httpRequest(
+        url: "${baseUrl}/api/now/table/change_task/${sid}",
+        httpProxy: proxyCreds,
+        authentication: credsId,
+        httpMode: 'PUT',
+        ignoreSslErrors: true,
+        contentType: 'APPLICATION_JSON',
+        requestBody: writeJSON(json: payload, returnText: true)
+    )
+}
+
+/**
+ * Pone tarea en curso/ejecución
+ *
+ * @param numeroCambio: numero de cambio padre de la tarea a obtener para evitar duplicados
+ * @param numeroTarea
+ */
 void ponerTareaEnEjecucion(String numeroCambio, String numeroTarea) {
-    String sid = obtenerSysId(numeroCambio, numeroTarea)
+    String sid = obtenerSysIdDeTarea(numeroCambio, numeroTarea)
     if (!sid) error("Error: No se encontró la tarea para poner en ejecución")
 
     httpRequest(
@@ -170,8 +246,15 @@ void ponerTareaEnEjecucion(String numeroCambio, String numeroTarea) {
     )
 }
 
+/**
+ * Asigna una tarea a un usuario dado su nombre completo
+ *
+ * @param numeroCambio: numero de cambio padre de la tarea a obtener para evitar duplicados
+ * @param numeroTarea
+ * @param nombrePersona: nombre completo de la persona a la cual asignar la tarea. debe coincidir exactamente con el nombre registrado en SNOW
+ */
 void asignarTarea(String numeroCambio, String numeroTarea, String nombrePersona) {
-    String sidTarea = obtenerSysId(numeroCambio, numeroTarea)
+    String sidTarea = obtenerSysIdDeTarea(numeroCambio, numeroTarea)
     if (!sidTarea) error("No se encontró la tarea ${numeroTarea}")
 
     String sidUsuario = obtenerIdUsuario(nombrePersona)
@@ -188,6 +271,13 @@ void asignarTarea(String numeroCambio, String numeroTarea, String nombrePersona)
     )
 }
 
+/**
+ * Devuelve el número de una tarea que incluya una relación numérica directa con otra. Útil para encontrar tareas hermanas
+ *
+ * @param numeroTarea
+ * @param cantidadASumar: cantidad a sumar (o restar si se introduce un número negativo) a la tarea original para hallar otra
+ * @return número de tarea resultante. Debe verificarse posteriormente que dicha tarea exista realmente
+ */
 String buscarTarea(String numeroTarea, int cantidadASumar) {
     def matcher = (numeroTarea =~ /([A-Za-z]+)(\d+)/)
     if (!matcher.find()) {
